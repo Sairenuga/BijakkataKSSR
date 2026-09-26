@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BijakKata KSSR - English ↔ Bahasa Melayu</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #F0F9FF;
+      user-select: none;
+    }
+    .font-fun {
+      font-family: 'Fredoka', cursive;
+    }
+    .card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.15), 0 8px 10px -6px rgba(14, 165, 233, 0.1);
+    }
+    .btn-bounce:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body class="bg-sky-50 text-slate-800 antialiased min-h-screen flex flex-col items-center justify-start pb-12">
+
+  <!-- Mobile App Container -->
+  <div id="app" class="w-full max-w-md bg-white min-h-screen shadow-2xl relative flex flex-col overflow-hidden">
+    <!-- Header Navigation -->
+    <header class="bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 p-4 text-white rounded-b-3xl shadow-lg relative z-10">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border-2 border-white/50 flex items-center justify-center text-2xl font-fun">
+            👦🏻
+          </div>
+          <div>
+            <h1 class="font-fun text-xl leading-tight">Aiman</h1>
+            <span class="bg-amber-400 text-amber-950 text-xs px-2.5 py-0.5 rounded-full font-bold">Tahun 2 • Level 4</span>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <div class="flex items-center bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/30">
+            <span class="text-amber-300 mr-1 text-sm">⭐</span>
+            <span id="star-count" class="font-bold text-sm">248</span>
+          </div>
+          <div class="flex items-center bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/30">
+            <span class="text-orange-400 mr-1 text-sm">🔥</span>
+            <span id="streak-count" class="font-bold text-sm">5</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dynamic Content Container -->
+    <main id="main-content" class="flex-1 p-4 overflow-y-auto">
+      <!-- Dynamic Views Render Here -->
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bg-white border-t border-sky-100 py-2 px-3 flex justify-around items-center sticky bottom-0 z-20">
+      <button onclick="navigate('home')" class="nav-btn text-sky-500 flex flex-col items-center btn-bounce">
+        <i data-lucide="home" class="w-6 h-6"></i>
+        <span class="text-[11px] font-bold mt-0.5">Utama</span>
+      </button>
+      <button onclick="navigate('learn')" class="nav-btn text-slate-400 flex flex-col items-center btn-bounce">
+        <i data-lucide="book-open" class="w-6 h-6"></i>
+        <span class="text-[11px] font-bold mt-0.5">Belajar</span>
+      </button>
+      <button onclick="startSession()" class="nav-btn text-slate-400 flex flex-col items-center btn-bounce">
+        <div class="bg-gradient-to-tr from-amber-400 to-orange-500 p-2.5 rounded-2xl -mt-6 shadow-lg border-2 border-white">
+          <i data-lucide="gamepad-2" class="w-6 h-6 text-white"></i>
+        </div>
+        <span class="text-[11px] font-bold mt-0.5 text-orange-500">Main</span>
+      </button>
+      <button onclick="navigate('progress')" class="nav-btn text-slate-400 flex flex-col items-center btn-bounce">
+        <i data-lucide="award" class="w-6 h-6"></i>
+        <span class="text-[11px] font-bold mt-0.5">Prestasi</span>
+      </button>
+      <button onclick="navigate('parent')" class="nav-btn text-slate-400 flex flex-col items-center btn-bounce">
+        <i data-lucide="users" class="w-6 h-6"></i>
+        <span class="text-[11px] font-bold mt-0.5">Ibu Bapa</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- JavaScript App Logic & DB Initialization -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEmj0M8GjcuwIqCGNCmSjLVCcanSQq7xw",
+      authDomain: "kssr-vocabulary.firebaseapp.com",
+      databaseURL: "https://kssr-vocabulary-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kssr-vocabulary",
+      storageBucket: "kssr-vocabulary.firebasestorage.app",
+      messagingSenderId: "885758836011",
+      appId: "1:885758836011:web:f0a8b58cc268755931d96e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // KSSR 100 Vocabulary MVP Dataset (Real Photographs & Accurate Metadata)
+    const KSSR_VOCAB_MVP = [
+      { id: "v1", english_word: "Car", bahasa_melayu: "Kereta", category: "Transport", standard_level: 1, image: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=600&q=80", example_sentence: "My father has a blue car.", bm_example_sentence: "Ayah saya ada kereta biru.", spelling: ["C","A","R"] },
+      { id: "v2", english_word: "Apple", bahasa_melayu: "Epal", category: "Food & Drinks", standard_level: 1, image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=600&q=80", example_sentence: "An apple is sweet and red.", bm_example_sentence: "Epal manis dan berwarna merah.", spelling: ["A","P","P","L","E"] },
+      { id: "v3", english_word: "Cat", bahasa_melayu: "Kucing", category: "Animals", standard_level: 1, image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80", example_sentence: "The cat likes to sleep.", bm_example_sentence: "Kucing itu suka tidur.", spelling: ["C","A","T"] },
+      { id: "v4", english_word: "Book", bahasa_melayu: "Buku", category: "School & Classroom", standard_level: 1, image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80", example_sentence: "I read a story book.", bm_example_sentence: "Saya membaca buku cerita.", spelling: ["B","O","O","K"] },
+      { id: "v5", english_word: "Elephant", bahasa_melayu: "Gajah", category: "Animals", standard_level: 2, image: "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?auto=format&fit=crop&w=600&q=80", example_sentence: "An elephant is very big.", bm_example_sentence: "Gajah sangat besar.", spelling: ["E","L","E","P","H","A","N","T"] },
+      { id: "v6", english_word: "Bicycle", bahasa_melayu: "Basikal", category: "Transport", standard_level: 2, image: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=600&q=80", example_sentence: "I ride my bicycle to school.", bm_example_sentence: "Saya menunggang basikal ke sekolah.", spelling: ["B","I","C","Y","C","L","E"] },
+      { id: "v7", english_word: "Doctor", bahasa_melayu: "Doktor", category: "Family & People", standard_level: 2, image: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80", example_sentence: "The doctor helps sick people.", bm_example_sentence: "Doktor membantu orang sakit.", spelling: ["D","O","C","T","O","R"] },
+      { id: "v8", english_word: "Toothbrush", bahasa_melayu: "Berus Gigi", category: "Body", standard_level: 2, image: "https://images.unsplash.com/photo-1559591937-e58af10079d3?auto=format&fit=crop&w=600&q=80", example_sentence: "Clean your teeth with a toothbrush.", bm_example_sentence: "Bersihkan gigi dengan berus gigi.", spelling: ["T","O","O","T","H","B","R","U","S","H"] },
+      { id: "v9", english_word: "Butterfly", bahasa_melayu: "Rama-rama", category: "Nature", standard_level: 3, image: "https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?auto=format&fit=crop&w=600&q=80", example_sentence: "The butterfly has colourful wings.", bm_example_sentence: "Rama-rama mempunyai kepak berwarna-warni.", spelling: ["B","U","T","T","E","R","F","L","Y"] },
+      { id: "v10", english_word: "Kitchen", bahasa_melayu: "Dapur", category: "Home", standard_level: 3, image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80", example_sentence: "Mother cooks food in the kitchen.", bm_example_sentence: "Ibu memasak makanan di dapur.", spelling: ["K","I","T","C","H","E","N"] }
+    ];
+
+    // Anti-Repetition State Tracking Manager
+    const sessionTracker = {
+      shownWordIds: new Set(),
+      shownQuestions: new Set(),
+      activityHistory: [],
+      maxSessionItems: 10
+    };
+
+    let currentQuestionIndex = 0;
+    let currentSessionPool = [];
+
+    // Speech Synthesis Utilities (Natural Malaysian Accent Fallback)
+    window.speakText = function(text, lang) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.85; 
+        utterance.pitch = 1.1; 
+
+        if (lang === 'en') {
+          utterance.lang = 'en-US';
+        } else {
+          utterance.lang = 'ms-MY'; // Natural Malaysian Malay Accent
+        }
+        window.speechSynthesis.speak(utterance);
+      }
+    };
+
+    // Navigation Router
+    window.navigate = function(view) {
+      const content = document.getElementById('main-content');
+      lucide.createIcons();
+
+      if (view === 'home') {
+        content.innerHTML = renderHomeView();
+      } else if (view === 'learn') {
+        content.innerHTML = renderLearnView();
+      } else if (view === 'progress') {
+        content.innerHTML = renderProgressView();
+      } else if (view === 'parent') {
+        content.innerHTML = renderParentView();
+      }
+      lucide.createIcons();
+    };
+
+    // 1. HOME DASHBOARD
+    function renderHomeView() {
+      return `
+        <div class="space-y-4">
+          <!-- Daily Mission Banner -->
+          <div class="bg-gradient-to-r from-amber-400 to-orange-400 rounded-3xl p-4 text-white shadow-lg relative overflow-hidden">
+            <div class="relative z-10">
+              <span class="bg-white/20 backdrop-blur-md text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Misi Hari Ini</span>
+              <h2 class="font-fun text-2xl mt-1">Selesaikan 10 Perkataan!</h2>
+              <p class="text-xs text-amber-100 mt-0.5">Dapatkan 30 Bintang & Kekalkan Streak 🔥</p>
+              
+              <button onclick="startSession()" class="mt-3 bg-white text-orange-600 font-fun px-5 py-2.5 rounded-2xl shadow-md font-bold btn-bounce inline-flex items-center space-x-2">
+                <span>Mula Main Sekarang</span>
+                <i data-lucide="play-circle" class="w-5 h-5"></i>
+              </button>
+            </div>
+            <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 select-none">🏆</div>
+          </div>
+
+          <!-- Quick Stats Grid -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-3.5 flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-xl">📚</div>
+              <div>
+                <p class="text-xs text-emerald-600 font-medium">Kosa Kata Dibaca</p>
+                <p class="font-fun text-lg text-emerald-950">126 / 1000</p>
+              </div>
+            </div>
+
+            <div class="bg-purple-50 border border-purple-100 rounded-2xl p-3.5 flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center font-bold text-xl">🎯</div>
+              <div>
+                <p class="text-xs text-purple-600 font-medium">Ketepatan Kuiz</p>
+                <p class="font-fun text-lg text-purple-950">86%</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- KSSR Category Explorer -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="font-fun text-lg text-slate-800">Kategori KSSR (Tahun 1-3)</h3>
+              <span class="text-xs text-sky-600 font-bold">Lihat Semua</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              ${renderCategoryCard("Haiwan (Animals)", "🐱", "bg-pink-100 border-pink-200 text-pink-700", "12 Words")}
+              ${renderCategoryCard("Kenderaan (Transport)", "🚗", "bg-sky-100 border-sky-200 text-sky-700", "10 Words")}
+              ${renderCategoryCard("Sekolah (School)", "🏫", "bg-amber-100 border-amber-200 text-amber-700", "15 Words")}
+              ${renderCategoryCard("Makanan (Food)", "🍎", "bg-emerald-100 border-emerald-200 text-emerald-700", "14 Words")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCategoryCard(title, emoji, style, count) {
+      return `
+        <div class="border ${style} rounded-2xl p-3 flex items-center space-x-3 cursor-pointer btn-bounce">
+          <div class="text-2xl">${emoji}</div>
+          <div>
+            <p class="font-bold text-xs leading-tight">${title}</p>
+            <span class="text-[10px] opacity-75">${count}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. LEARNING CARD MODE (Real Photo + Dual Audio)
+    function renderLearnView() {
+      const word = KSSR_VOCAB_MVP[0]; // Example initial word
+      return `
+        <div class="space-y-4">
+          <div class="bg-white border-2 border-sky-100 rounded-3xl p-4 card-shadow">
+            <!-- Real Photograph -->
+            <div class="relative w-full h-52 rounded-2xl overflow-hidden mb-4 border border-slate-100">
+              <img src="${word.image}" alt="${word.english_word}" class="w-full h-full object-cover">
+              <span class="absolute top-3 left-3 bg-slate-900/70 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-bold">Standard ${word.standard_level}</span>
+            </div>
+
+            <!-- English & BM Vocab Presentation -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between bg-sky-50 p-3 rounded-2xl border border-sky-100">
+                <div>
+                  <span class="text-[10px] font-bold text-sky-600 uppercase tracking-wider">English</span>
+                  <p class="font-fun text-2xl text-slate-800">${word.english_word}</p>
+                </div>
+                <button onclick="speakText('${word.english_word}', 'en')" class="w-10 h-10 bg-sky-500 text-white rounded-xl flex items-center justify-center btn-bounce shadow-md">
+                  <i data-lucide="volume-2" class="w-5 h-5"></i>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
+                <div>
+                  <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Bahasa Melayu</span>
+                  <p class="font-fun text-2xl text-slate-800">${word.bahasa_melayu}</p>
+                </div>
+                <button onclick="speakText('${word.bahasa_melayu}', 'ms')" class="w-10 h-10 bg-indigo-500 text-white rounded-xl flex items-center justify-center btn-bounce shadow-md">
+                  <i data-lucide="volume-2" class="w-5 h-5"></i>
+                </button>
+              </div>
+
+              <!-- Example Sentence -->
+              <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/60 text-xs space-y-1">
+                <p class="text-slate-700"><strong>EN:</strong> ${word.example_sentence}</p>
+                <p class="text-slate-500"><strong>BM:</strong> ${word.bm_example_sentence}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 3. GAME ENGINE - ANTI-REPETITION & QUESTION SHUFFLING
+    window.startSession = function() {
+      // Dynamic Question Engine with Anti-Repetition logic
+      currentSessionPool = KSSR_VOCAB_MVP
+        .filter(item => !sessionTracker.shownWordIds.has(item.id))
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 5);
+
+      if (currentSessionPool.length === 0) {
+        sessionTracker.shownWordIds.clear(); // Reset session pool when exhausted
+        currentSessionPool = KSSR_VOCAB_MVP.slice(0, 5);
+      }
+
+      currentQuestionIndex = 0;
+      renderNextQuestion();
+    };
+
+    function renderNextQuestion() {
+      if (currentQuestionIndex >= currentSessionPool.length) {
+        showCompletionReward();
+        return;
+      }
+
+      const currentItem = currentSessionPool[currentQuestionIndex];
+      sessionTracker.shownWordIds.add(currentItem.id);
+
+      // Randomly select dynamic activity type
+      const activityTypes = ['EN_TO_BM', 'BM_TO_EN', 'PICTURE_RECOGNITION', 'SPELLING'];
+      const chosenActivity = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+
+      const content = document.getElementById('main-content');
+      
+      if (chosenActivity === 'EN_TO_BM') {
+        content.innerHTML = renderMultipleChoiceQuestion(currentItem, 'EN_TO_BM');
+      } else if (chosenActivity === 'BM_TO_EN') {
+        content.innerHTML = renderMultipleChoiceQuestion(currentItem, 'BM_TO_EN');
+      } else if (chosenActivity === 'SPELLING') {
+        content.innerHTML = renderSpellingQuestion(currentItem);
+      } else {
+        content.innerHTML = renderPictureRecognitionQuestion(currentItem);
+      }
+      lucide.createIcons();
+    }
+
+    function renderMultipleChoiceQuestion(item, mode) {
+      const isEnToBm = mode === 'EN_TO_BM';
+      const questionText = isEnToBm ? `Apakah maksud "${item.english_word}"?` : `What is "${item.bahasa_melayu}" in English?`;
+      
+      // Generate randomized options
+      const distractors = KSSR_VOCAB_MVP
+        .filter(v => v.id !== item.id)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(v => isEnToBm ? v.bahasa_melayu : v.english_word);
+
+      const correctAnswer = isEnToBm ? item.bahasa_melayu : item.english_word;
+      const options = [...distractors, correctAnswer].sort(() => 0.5 - Math.random());
+
+      return `
+        <div class="space-y-4">
+          <div class="flex justify-between items-center text-xs font-bold text-slate-400">
+            <span>Soalan ${currentQuestionIndex + 1} daripada ${currentSessionPool.length}</span>
+            <span class="text-amber-500">🔥 Bonus Kuiz</span>
+          </div>
+
+          <div class="bg-white border border-sky-100 rounded-3xl p-4 card-shadow text-center">
+            <div class="w-full h-44 rounded-2xl overflow-hidden mb-3">
+              <img src="${item.image}" class="w-full h-full object-cover">
+            </div>
+            <h3 class="font-fun text-xl text-slate-800 mb-4">${questionText}</h3>
+
+            <div class="grid grid-cols-1 gap-2.5">
+              ${options.map(opt => `
+                <button onclick="checkAnswer('${opt}', '${correctAnswer}')" class="w-full py-3 px-4 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-2xl font-fun text-slate-700 text-lg transition btn-bounce">
+                  ${opt}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSpellingQuestion(item) {
+      return `
+        <div class="space-y-4">
+          <div class="bg-white border border-sky-100 rounded-3xl p-4 card-shadow text-center">
+            <div class="w-full h-40 rounded-2xl overflow-hidden mb-3">
+              <img src="${item.image}" class="w-full h-full object-cover">
+            </div>
+            <p class="text-xs text-sky-600 font-bold uppercase mb-1">Eja kata berikut dalam English</p>
+            <h3 class="font-fun text-2xl text-slate-800 mb-4">${item.bahasa_melayu}</h3>
+
+            <div class="flex justify-center space-x-2 mb-6">
+              ${item.spelling.map(() => `
+                <div class="w-10 h-12 border-b-4 border-sky-400 bg-sky-50 rounded-lg flex items-center justify-center font-fun text-xl text-slate-700">?</div>
+              `).join('')}
+            </div>
+
+            <button onclick="checkAnswer('${item.english_word}', '${item.english_word}')" class="w-full py-3 bg-emerald-500 text-white font-fun text-lg rounded-2xl shadow-md btn-bounce">
+              Semak Ejaan
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPictureRecognitionQuestion(item) {
+      const images = KSSR_VOCAB_MVP
+        .filter(v => v.id !== item.id)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3);
+      
+      const allChoices = [...images, item].sort(() => 0.5 - Math.random());
+
+      return `
+        <div class="space-y-4">
+          <div class="text-center bg-sky-50 p-3 rounded-2xl border border-sky-100">
+            <p class="text-xs text-sky-600 font-bold uppercase">Pilih Gambar Yang Betul</p>
+            <h2 class="font-fun text-3xl text-slate-800">"${item.english_word}"</h2>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            ${allChoices.map(choice => `
+              <div onclick="checkAnswer('${choice.id}', '${item.id}')" class="h-36 rounded-2xl overflow-hidden border-2 border-slate-100 hover:border-sky-400 cursor-pointer card-shadow btn-bounce relative">
+                <img src="${choice.image}" class="w-full h-full object-cover">
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    window.checkAnswer = function(selected, correct) {
+      if (selected === correct) {
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        currentQuestionIndex++;
+        setTimeout(renderNextQuestion, 1000);
+      } else {
+        alert("Ops, cuba lagi ya! 💪");
+      }
+    };
+
+    function showCompletionReward() {
+      const content = document.getElementById('main-content');
+      content.innerHTML = `
+        <div class="text-center py-8 space-y-4">
+          <div class="text-7xl animate-bounce">🌟</div>
+          <h2 class="font-fun text-3xl text-slate-800">Tahniah Aiman!</h2>
+          <p class="text-sm text-slate-600">Sesi pembelajaran tamat. Anda mendapat +30 Bintang!</p>
+          <button onclick="navigate('home')" class="bg-sky-500 text-white font-fun px-6 py-3 rounded-2xl font-bold btn-bounce shadow-lg">
+            Kembali Ke Utama
+          </button>
+        </div>
+      `;
+    }
+
+    // 4. PROGRESS ANALYTICS VIEW
+    function renderProgressView() {
+      return `
+        <div class="space-y-4">
+          <h2 class="font-fun text-xl text-slate-800">Prestasi Saya 📈</h2>
+          
+          <div class="bg-white p-4 rounded-3xl border border-sky-100 card-shadow space-y-3">
+            <div class="flex justify-between text-xs font-bold">
+              <span>Penguasaan Kosa Kata</span>
+              <span class="text-sky-600">126 / 1000 Perkataan</span>
+            </div>
+            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+              <div class="bg-sky-500 h-full rounded-full" style="width: 12.6%"></div>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-3xl border border-sky-100 card-shadow">
+            <h3 class="font-bold text-sm text-slate-700 mb-3">Pencapaian Badges</h3>
+            <div class="flex justify-around">
+              <div class="text-center"><span class="text-3xl">🏅</span><p class="text-[10px] font-bold mt-1">10 Perkataan</p></div>
+              <div class="text-center"><span class="text-3xl">🔥</span><p class="text-[10px] font-bold mt-1">5-Day Streak</p></div>
+              <div class="text-center"><span class="text-3xl">🧠</span><p class="text-[10px] font-bold mt-1">Raja Ejaan</p></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 5. PARENT CONTROL SECTION
+    function renderParentView() {
+      return `
+        <div class="space-y-4">
+          <div class="bg-purple-900 text-white p-4 rounded-3xl shadow-lg">
+            <span class="text-[10px] uppercase font-bold tracking-wider opacity-80">Zon Ibu Bapa</span>
+            <h2 class="font-fun text-xl">Laporan Kemajuan Aiman</h2>
+          </div>
+
+          <div class="bg-white p-4 rounded-3xl border border-slate-100 card-shadow space-y-3 text-xs">
+            <div class="flex justify-between py-2 border-b">
+              <span class="text-slate-500">Ketepatan English → BM</span>
+              <span class="font-bold text-emerald-600">82%</span>
+            </div>
+            <div class="flex justify-between py-2 border-b">
+              <span class="text-slate-500">Ketepatan BM → English</span>
+              <span class="font-bold text-emerald-600">74%</span>
+            </div>
+            <div class="flex justify-between py-2 border-b">
+              <span class="text-slate-500">Prestasi Ejaan</span>
+              <span class="font-bold text-amber-600">68%</span>
+            </div>
+            <div class="flex justify-between py-2">
+              <span class="text-slate-500">Masa Pembelajaran Minggu Ini</span>
+              <span class="font-bold text-sky-600">45 Minit</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Initialize Default View
+    navigate('home');
+  </script>
+</body>
+</html>
